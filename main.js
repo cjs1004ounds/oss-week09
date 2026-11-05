@@ -12,7 +12,7 @@
 
 // 주어짐: 도시 세 곳의 위도·경도. 키는 index.html <select> 의 option value 와 같습니다.
 import { getForecast } from "./api.js";
-import { toDays } from "./logic.js";
+import { toDays, isGoodDay, summarize } from "./logic.js";
 
 const CITIES = {
   seoul: { name: "Seoul", lat: 37.566, lon: 126.9784 },
@@ -32,6 +32,7 @@ const rowsEl = document.querySelector("#rows");
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const city = CITIES[citySelect.value];
+  state.limits = { rain: Number(rainInput.value), wind: Number(windInput.value) };
   statusEl.textContent = "Loading...";
   statusEl.classList.remove("error");
   try {
@@ -47,18 +48,27 @@ form.addEventListener("submit", async (event) => {
   render();
 });
 
-const state = {city: null, days: []}
+const state = {
+  city: null,
+  days: [],
+  limits: { rain: Number(rainInput.value), wind: Number(windInput.value) },
+};
 
 function dayRow(day) {
   const tr= document.createElement("tr");
+
   for (const text of[day.date.slice(5), `${day.max}°`, `${day.wind} km/h`, `${day.rain}%`]) {
     const td =document.createElement("td");
     td.textContent =text;
     tr.append(td);
   }
+  if (isGoodDay(day, state.limits)) tr.classList.add("good");
   return tr;
 }
 
 function render() {
+  summaryEl.textContent = state.city
+    ?`${state.city.name}: ${summarize(state.days, state.limits)}.`
+    :"";
   rowsEl.replaceChildren(...state.days.map(dayRow));
 }
