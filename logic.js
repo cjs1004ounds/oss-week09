@@ -18,10 +18,17 @@ export function toDays(daily){
 }
 
 export function isGoodDay(day, limits) {
-    return day.rain <= limits.rain && day.wind <= limits.wind;
+    return reasons(day, limits).length === 0;
 }
 
 export function summarize(days, limits) {
     const good = days.filter((day) => isGoodDay(day, limits));
     return `good for a run on ${good.length} of ${days.length} days`
+}
+
+export function reasons(day, limits) {
+    const out = [];
+    if (day.rain > limits.rain) out.push("rain");
+    if (day.wind > limits.wind) out.push("wind");
+    return out;
 }
